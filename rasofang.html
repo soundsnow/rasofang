@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { background: #000; color: #ccc; font-family: sans-serif; margin: 0; padding: 5px; font-size: 12px; }
+        table { width: 100%; border-collapse: collapse; text-align: center; }
+        td, th { padding: 2px; border: 1px solid #333; }
+        input[type="number"] { width: 35px; background: #222; color: #fff; border: 1px solid #444; text-align: center; font-size: 11px; }
+        button { background: #333; color: #bbb; border: 1px solid #555; padding: 2px 4px; font-size: 11px; cursor: pointer; }
+        button:active { background: #444; }
+        .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #1a1a1a; border: 1px solid #555; padding: 10px; z-index: 100; display: none; width: 80%; max-width: 300px; }
+        .modal-header { margin-bottom: 10px; font-weight: bold; color: #aaa; }
+        .modal-body { display: flex; gap: 5px; margin-bottom: 15px; }
+        select { background: #222; color: #ccc; border: 1px solid #444; flex: 1; width: 45%; }
+        .modal-footer { display: flex; justify-content: space-between; }
+    </style>
+</head>
+<body>
+
+<table id="mainTable">
+    <thead>
+        <tr>
+            <th>PX</th><th>W</th><th>WxH</th><th>H</th><th>FS</th><th>FM</th><th>FL</th><th></th>
+        </tr>
+    </thead>
+    <tbody id="tableBody">
+        </tbody>
+</table>
+
+<div id="setupModal" class="modal">
+    <div id="modalTitle" class="modal-header"></div>
+    <div class="modal-body">
+        <select id="brandSelect" onchange="updateDevice()"><option value="">Brand</option></select>
+        <select id="deviceSelect" disabled><option value="">Device</option></select>
+    </div>
+    <div class="modal-footer">
+        <button onclick="closeModal()">Cancel</button>
+        <button onclick="saveModal()">OK</button>
+    </div>
+</div>
+
+<script>
+const data = [
+    [6240,96,65],[8080,101,80],[16384,128,128],[16900,130,130],[19200,120,160],[20480,128,160],[23232,132,176],
+    [36608,176,208],[38720,176,220],[43264,208,208],[48400,220,220],[62400,240,260],[66560,208,320],[76800,240,320],
+    [96000,240,400],[102400,320,320],[103680,240,432],[105600,240,440],[128000,320,400],[128000,640,200],
+    [144000,360,400],[146432,352,416],[153600,320,480],[172800,360,480],[230400,360,640],[276000,345,800],
+    [281600,800,352],[307200,480,640],[384000,480,800],[409920,480,854]
+];
+
+const brands = { "A": ["A1", "A2"], "B": ["B1", "B2"], "C": ["C1"] };
+let storage = {}; 
+let currentKey = "";
+
+function render() {
+    const tbody = document.getElementById('tableBody');
+    data.forEach((row, i) => {
+        tbody.innerHTML += createRow(row[0], row[1], row[2], i);
+    });
+    tbody.innerHTML += `<tr>
+        <td><button id="mePx" onclick="openModal('me')">me</button></td>
+        <td><input type="number" id="meW"></td>
+        <td><button id="btn_me" onclick="swap('me')">x</button></td>
+        <td><input type="number" id="meH"></td>
+        <td><input type="number"></td><td><input type="number"></td><td><input type="number"></td>
+        <td><input type="radio" name="row"></td>
+    </tr>`;
+}
+
+function createRow(px, w, h, i) {
+    return `<tr>
+        <td><button onclick="openModal(${i})">${px}</button></td>
+        <td id="w_${i}">${w}</td>
+        <td><button id="btn_${i}" onclick="swap(${i})">x</button></td>
+        <td id="h_${i}">${h}</td>
+        <td><input type="number"></td><td><input type="number"></td><td><input type="number"></td>
+        <td><input type="radio" name="row"></td>
+    </tr>`;
+}
+
+function swap(id) {
+    const btn = document.getElementById('btn_' + id);
+    const isMe = id === 'me';
+    let wVal, hVal;
+
+    if(isMe) {
+        const wIn = document.getElementById('meW'), hIn = document.getElementById('meH');
+        [wIn.value, hIn.value] = [hIn.value, wIn.value];
+        wVal = wIn.value; hVal = hIn.value;
+    } else {
+        const wTd = document.getElementById('w_' + id), hTd = document.getElementById('h_' + id);
+        const temp = wTd.innerText;
+        wTd.innerText = hTd.innerText;
+        hTd.innerText = temp;
+        wVal = wTd.innerText; hVal = hTd.innerText;
+    }
+    btn.innerText = (btn.innerText === 'x') ? 'X' : 'x';
+}
+
+function openModal(id) {
+    const isMe = id === 'me';
+    const px = isMe ? 'me' : data[id][0];
+    const btn = document.getElementById('btn_' + id);
+    const w = isMe ? document.getElementById('meW').value : document.getElementById('w_'+id).innerText;
+    const h = isMe ? document.getElementById('meH').value : document.getElementById('h_'+id).innerText;
+    
+    currentKey = `${px}_${w}x${h}`;
+    document.getElementById('modalTitle').innerText = `${px} | ${w}x${h}`;
+    
+    const bSel = document.getElementById('brandSelect');
+    bSel.innerHTML = '<option value="">Brand</option>';
+    for(let b in brands) bSel.innerHTML += `<option value="${b}">${b}</option>`;
+    
+    const saved = storage[currentKey] || {b:'', d:''};
+    bSel.value = saved.b;
+    updateDevice();
+    document.getElementById('deviceSelect').value = saved.d;
+    
+    document.getElementById('setupModal').style.display = 'block';
+}
+
+function updateDevice() {
+    const b = document.getElementById('brandSelect').value;
+    const dSel = document.getElementById('deviceSelect');
+    dSel.innerHTML = '<option value="">Device</option>';
+    if(b && brands[b]) {
+        dSel.disabled = false;
+        brands[b].forEach(d => dSel.innerHTML += `<option value="${d}">${d}</option>`);
+    } else {
+        dSel.disabled = true;
+    }
+}
+
+function closeModal() { document.getElementById('setupModal').style.display = 'none'; }
+
+function saveModal() {
+    storage[currentKey] = {
+        b: document.getElementById('brandSelect').value,
+        d: document.getElementById('deviceSelect').value
+    };
+    closeModal();
+}
+
+render();
+</script>
+</body>
+</html>
