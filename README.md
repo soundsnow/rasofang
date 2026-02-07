@@ -8,8 +8,9 @@ I spent **two years** manually testing J2ME apps and games across various platfo
 **Note:** I originally had a massive database of hardware features, but due to a storage failure, some "Brand" and "Device" metadata was lost. Currently, these fields contain placeholders.
 
 ### Sources Verified:
-- [GSMArena](https://www.gsmarena.com/) / [DPSoftware](https://www.dpsoftware.org/)
-- [Mobiles24](https://www.mobiles24.co/) / [Dedomil](http://dedomil.net/games/) / [Phoneky](https://phoneky.com/)
+- [GSMArena](https://www.gsmarena.com/)
+- [JBenchmark](http://www.jbenchmark.com/) / [DPSoftware](https://www.dpsoftware.org/)
+- [Mobiles24](https://www.mobiles24.co/) / [Dedomil](http://dedomil.net/games/)
 - [Puyo Pop Fever Re:Chained (Java ME / J2ME)](https://github.com/Realtimeless785/Puyo-Pop-Fever-Re-Chained-J2ME)
 - Real-world hardware testing.
 
